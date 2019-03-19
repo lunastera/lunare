@@ -8,7 +8,8 @@ lazy val root = (project in file("."))
   .settings(
     name := "lunare",
     libraryDependencies ++= Seq(
+      "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.1",
+      "org.ow2.asm" % "asm" % "7.0",
       scalaTest % Test,
-      "org.ow2.asm" % "asm" % "7.0"
     )
   )
