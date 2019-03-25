@@ -35,29 +35,29 @@ object Parser extends Parsers {
     stringNode | intNode | functionCall
   }
 
-  def functionCall: Parser[FunctionCall] = {
+  def functionCall: Parser[FunctionCall] = positioned {
     identifier ~ functionParameters ^^ {
       case name ~ params => FunctionCall(name.value, params)
     }
   }
 
   def functionParameters: Parser[List[AST]] = {
-    (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ { case list @ List() => list }
+    (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ { list: List[AST] => list }
   }
 
   def block = positioned {
-    LBRC() ~> expr.* <~ RBRC() ^^ { case exprs @ List() =>  Block(exprs) }
+    LBRC() ~> expr.* <~ RBRC() ^^ { exprs: List[AST] =>  Block(exprs) }
   }
 
-  private def stringNode: Parser[StringNode] = positioned {
+  def stringNode: Parser[StringNode] = positioned {
     accept("string", { case STRING_LITERAL(value) => StringNode(value.substring(1, value.length - 1)) })
   }
 
-  private def intNode: Parser[IntNode] = positioned {
+  def intNode: Parser[IntNode] = positioned {
     accept("int", { case INT_LITERAL(value) => IntNode(value) })
   }
 
-  private def identifier: Parser[IDENTIFIER] = positioned {
+  def identifier: Parser[IDENTIFIER] = positioned {
     accept("identifier", { case id @ IDENTIFIER(_) => id })
   }
 }

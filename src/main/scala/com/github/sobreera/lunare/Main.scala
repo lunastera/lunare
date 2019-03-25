@@ -7,7 +7,7 @@ object Main {
   def main(args: Array[String]): Unit = {
     val code =
       """
-        |hoge(123)
+        |puts(123, "hoge")
       """.stripMargin.trim
 
     Lexer(code) match {

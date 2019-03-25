@@ -4,6 +4,7 @@ import com.github.sobreera.lunare.compiler.{LexerError, Location}
 
 import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
+import scala.util.parsing.input.Positional
 
 object Lexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
@@ -25,14 +26,26 @@ object Lexer extends RegexParsers {
     )
   }
 
-  def lpar: Parser[LPAR] = positioned { "(" ^^ (_ => LPAR()) }
-  def rpar: Parser[RPAR] = positioned { ")" ^^ (_ => RPAR()) }
-  def lbrc: Parser[LBRC] = positioned { "{" ^^ (_ => LBRC()) }
-  def rbrc: Parser[RBRC] = positioned { "}" ^^ (_ => RBRC()) }
+  private def token[T <: Positional](str: String, returnToken: T): Parser[T] = positioned { str ^^ (_ => returnToken) }
 
-  def comma: Parser[COMMA] = positioned { "," ^^ (_ => COMMA()) }
+  def lpar: Parser[LPAR] = token("(", LPAR())
+  def rpar: Parser[RPAR] = token(")", RPAR())
+  def lbrc: Parser[LBRC] = token("{", LBRC())
+  def rbrc: Parser[RBRC] = token("}", RBRC())
 
-  def func: Parser[FUNC] = positioned { "func" ^^ (_ => FUNC()) }
+  def not: Parser[NOT] = token("!", NOT())
+
+  def and: Parser[AND] = token("&&", AND())
+  def equ: Parser[EQU] = token("==", EQU())
+  def neq: Parser[NEQ] = token("!=", NEQ())
+  def leq: Parser[LEQ] = token("<=", LEQ())
+  def geq: Parser[GEQ] = token(">=", GEQ())
+  def lt: Parser[LT] = token("<", LT())
+  def gt: Parser[GT] = token(">", GT())
+
+  def comma: Parser[COMMA] = token(",", COMMA())
+
+  def func: Parser[FUNC] = token("func", FUNC())
 
   def identifier: Parser[IDENTIFIER] = positioned {
     "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { value =>
