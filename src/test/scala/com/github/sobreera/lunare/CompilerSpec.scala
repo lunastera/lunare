@@ -1,7 +1,7 @@
 package com.github.sobreera.lunare
 
 import com.github.sobreera.lunare.compiler.{Compiler, Location, ParserError}
-import com.github.sobreera.lunare.parsing.AST.StringNode
+import com.github.sobreera.lunare.parser.AST.StringNode
 import org.scalatest.{FlatSpec, Matchers}
 
 class CompilerSpec extends FlatSpec with Matchers {

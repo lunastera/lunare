@@ -1,8 +1,8 @@
-package com.github.sobreera.lunare.parsing
+package com.github.sobreera.lunare.parser
 
 import com.github.sobreera.lunare.compiler.{Location, ParserError}
-import com.github.sobreera.lunare.lexer.{INT_LITERAL, STRING_LITERAL, Token}
-import com.github.sobreera.lunare.parsing.AST.{IntNode, StringNode}
+import com.github.sobreera.lunare.lexer._
+import com.github.sobreera.lunare.parser.AST._
 
 import scala.util.parsing.combinator.Parsers
 import scala.util.parsing.input.{NoPosition, Position, Reader}
@@ -23,7 +23,7 @@ object Parser extends Parsers {
     program(reader) match {
       case NoSuccess(msg, next) =>
         Left(ParserError(Location(next.pos.line, next.pos.column), msg))
-      case Success(result, next) => Right(result)
+      case Success(result, _) => Right(result)
     }
   }
 
@@ -32,14 +32,32 @@ object Parser extends Parsers {
   }
 
   def expr: Parser[AST] = positioned {
-    phrase(stringNode | intNode)
+    stringNode | intNode | functionCall
+  }
+
+  def functionCall: Parser[FunctionCall] = {
+    identifier ~ functionParameters ^^ {
+      case name ~ params => FunctionCall(name.value, params)
+    }
+  }
+
+  def functionParameters: Parser[List[AST]] = {
+    (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ { case list @ List() => list }
+  }
+
+  def block = positioned {
+    LBRC() ~> expr.* <~ RBRC() ^^ { case exprs @ List() =>  Block(exprs) }
   }
 
   private def stringNode: Parser[StringNode] = positioned {
-    accept("string node", { case STRING_LITERAL(value) => StringNode(value.substring(1, value.length - 1)) })
+    accept("string", { case STRING_LITERAL(value) => StringNode(value.substring(1, value.length - 1)) })
   }
-//  (optional(MINUS) map { if (it == null) 1 else -1}) * NUMBER map { (i, num) -> (i * num.text.toInt()).toString() }
+
   private def intNode: Parser[IntNode] = positioned {
-    accept("int node", { case INT_LITERAL(value) => IntNode(value) })
+    accept("int", { case INT_LITERAL(value) => IntNode(value) })
+  }
+
+  private def identifier: Parser[IDENTIFIER] = positioned {
+    accept("identifier", { case id @ IDENTIFIER(_) => id })
   }
 }
