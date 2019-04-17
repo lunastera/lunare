@@ -32,12 +32,18 @@ object Parser extends Parsers {
   }
 
   def expr: Parser[AST] = positioned {
-    stringNode | intNode | functionCall
+    functionDeclaration | functionCall | stringNode | intNode
+  }
+
+  def functionDeclaration: Parser[FunctionDeclaration] = positioned {
+    FUNC() ~> identifier ~ functionParameters ~ block ^^ {
+      case IDENTIFIER(name) ~ params ~ body => FunctionDeclaration(name, params, body)
+    }
   }
 
   def functionCall: Parser[FunctionCall] = positioned {
     identifier ~ functionParameters ^^ {
-      case name ~ params => FunctionCall(name.value, params)
+      case IDENTIFIER(name) ~ params => FunctionCall(name, params)
     }
   }
 
@@ -45,8 +51,8 @@ object Parser extends Parsers {
     (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ { list: List[AST] => list }
   }
 
-  def block = positioned {
-    LBRC() ~> expr.* <~ RBRC() ^^ { exprs: List[AST] =>  Block(exprs) }
+  def block: Parser[Block] = positioned {
+    LBRC() ~> expr.* <~ RBRC() ^^ { exprs: List[AST] => Block(exprs) }
   }
 
   def stringNode: Parser[StringNode] = positioned {

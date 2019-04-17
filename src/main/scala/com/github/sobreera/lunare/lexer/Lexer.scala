@@ -8,7 +8,7 @@ import scala.util.parsing.input.Positional
 
 object Lexer extends RegexParsers {
   override def skipWhitespace: Boolean = true
-  override protected val whiteSpace: Regex = "[ \t\r\f]+".r
+  override protected val whiteSpace: Regex = "[ \t\n\r\f]+".r
 
   def apply(code: String): Either[LexerError, List[Token]] =
     parse(tokens, code) match {
@@ -18,11 +18,10 @@ object Lexer extends RegexParsers {
     }
 
   def tokens: Parser[List[Token]] = {
-    phrase(rep1(
-      identifier
-        | stringLiteral | intLiteral
+    phrase(rep1(stringLiteral | intLiteral
         | lpar | rpar | lbrc | rbrc
-        | comma | func)
+        | comma | func
+        | identifier)
     )
   }
 
@@ -47,17 +46,17 @@ object Lexer extends RegexParsers {
 
   def func: Parser[FUNC] = token("func", FUNC())
 
-  def identifier: Parser[IDENTIFIER] = positioned {
-    "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { value =>
-      IDENTIFIER(value)
-    }
-  }
-
   def stringLiteral: Parser[STRING_LITERAL] = positioned {
     "\".*?\"".r ^^ { value => STRING_LITERAL(value) }
   }
 
   def intLiteral: Parser[INT_LITERAL] = positioned {
     "\\d+".r ^^ { value => INT_LITERAL(value.toInt) }
+  }
+
+  def identifier: Parser[IDENTIFIER] = positioned {
+    "[a-zA-Z_][a-zA-Z0-9_]*".r ^^ { value =>
+      IDENTIFIER(value)
+    }
   }
 }

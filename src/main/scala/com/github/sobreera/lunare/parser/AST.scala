@@ -11,6 +11,6 @@ object AST {
   case class Block(list: List[AST]) extends AST
   case class Variable(name: String) extends AST
 
-//  case class FunctionDeclaration(name: String, parameters: List[AST], body: Block) extends AST
+  case class FunctionDeclaration(name: String, parameters: List[AST], body: Block) extends AST
   case class FunctionCall(name: String, parameters: List[AST]) extends AST
 }
