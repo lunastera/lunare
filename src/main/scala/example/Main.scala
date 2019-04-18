@@ -1,13 +1,13 @@
-package com.github.sobreera.lunare
+package example
 
-import com.github.sobreera.lunare.compiler._
+import com.github.sobreera.lunare.compiler.Compiler
 
 object Main {
   def main(args: Array[String]): Unit = {
     val code =
       """
         |func main() {
-        | print("hoge")
+        | print("123")
         |}
       """.stripMargin.trim
 

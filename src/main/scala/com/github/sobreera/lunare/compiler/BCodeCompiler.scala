@@ -57,6 +57,7 @@ object BCodeCompiler {
             mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
             params.foreach {
               case StringNode(value) => mv.visitLdcInsn(value)
+              case IntNode(value) =>mv.visitLdcInsn(value)
             }
             mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/Object;)V", false)
           }
