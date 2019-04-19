@@ -1,4 +1,4 @@
-package com.github.sobreera.lunare.compiler
+package com.github.sobreera.lunare.runner
 
 import java.io.File
 import java.net.URLClassLoader

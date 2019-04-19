@@ -44,7 +44,7 @@ object Lexer extends RegexParsers {
 
   def comma: Parser[COMMA] = token(",", COMMA())
 
-  def func: Parser[FUNC] = token("func", FUNC())
+  def func: Parser[DEF] = token("def", DEF())
 
   def stringLiteral: Parser[STRING_LITERAL] = positioned {
     "\".*?\"".r ^^ { value => STRING_LITERAL(value) }

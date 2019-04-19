@@ -30,4 +30,4 @@ case class MINUS() extends Token
 case class TIMES() extends Token
 case class DIV() extends Token
 
-case class FUNC() extends Token
+case class DEF() extends Token

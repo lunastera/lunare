@@ -1,8 +1,8 @@
 package com.github.sobreera.lunare.compiler
 
 import com.github.sobreera.lunare.parser.AST
-import com.github.sobreera.lunare.parser.AST.{FunctionCall, FunctionDeclaration, IntNode, StringNode}
-import org.objectweb.asm.ClassWriter
+import com.github.sobreera.lunare.parser.AST._
+import org.objectweb.asm.{ClassWriter, MethodVisitor}
 import org.objectweb.asm.Opcodes._
 
 import scala.util.{Failure, Success, Try}
@@ -47,25 +47,30 @@ object BCodeCompiler {
   }
 
   def compileFunction(declaration: FunctionDeclaration)(implicit cw: ClassWriter): Unit = {
-    val signature = "([Ljava/lang/String;)V"
-    val mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, declaration.name, signature, null, null)
+    val descriptor: String = declaration.name match {
+      case "main" => "([Ljava/lang/String;)V"
+      case _      => ???
+    }
+    val mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, declaration.name, descriptor, null, null)
     mv.visitCode()
-    for(expr <- declaration.body.list) expr match {
-      case FunctionCall(name, params) => {
-        name match {
-          case "print" => {
-            mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
-            params.foreach {
-              case StringNode(value) => mv.visitLdcInsn(value)
-              case IntNode(value) =>mv.visitLdcInsn(value)
-            }
-            mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/Object;)V", false)
-          }
-        }
-      }
+    declaration.body.list.foreach {
+      case funcCall@FunctionCall(_, _) => callFunction(funcCall, mv)
     }
     mv.visitInsn(RETURN)
     mv.visitMaxs(-1, -1)
     mv.visitEnd()
+  }
+
+  def callFunction(funcCall: FunctionCall, mv: MethodVisitor): Unit = {
+    funcCall.name match {
+      case "print" => {
+        mv.visitFieldInsn(GETSTATIC, "java/lang/System", "out", "Ljava/io/PrintStream;")
+        funcCall.parameters.foreach {
+          case StringNode(value) => mv.visitLdcInsn(value)
+          case IntNode(value)    => mv.visitLdcInsn(value)
+        }
+        mv.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream", "println", "(Ljava/lang/Object;)V", false)
+      }
+    }
   }
 }

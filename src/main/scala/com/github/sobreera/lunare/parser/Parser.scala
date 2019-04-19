@@ -18,7 +18,7 @@ object Parser extends Parsers {
     override def rest: Reader[Token] = new TokenReader(tokens.tail)
   }
 
-  def apply(tokens: Seq[Token]): Either[ParserError, AST] = {
+  def apply(tokens: Seq[Token]): Either[ParserError, List[AST]] = {
     val reader = new TokenReader(tokens)
     program(reader) match {
       case NoSuccess(msg, next) =>
@@ -27,32 +27,42 @@ object Parser extends Parsers {
     }
   }
 
-  def program: Parser[AST] = positioned {
-    phrase(expr)
+  def program: Parser[List[AST]] = positioned {
+    rep1(statement)
   }
 
-  def expr: Parser[AST] = positioned {
-    functionDeclaration | functionCall | stringNode | intNode
+  def statement: Parser[AST] = positioned {
+    phrase(functionDeclaration)
+  }
+
+  def expression: Parser[AST] = positioned {
+    functionCall | stringNode | intNode
   }
 
   def functionDeclaration: Parser[FunctionDeclaration] = positioned {
-    FUNC() ~> identifier ~ functionParameters ~ block ^^ {
+    DEF() ~> identifier ~ functionParameters ~ block ^^ {
       case IDENTIFIER(name) ~ params ~ body => FunctionDeclaration(name, params, body)
     }
   }
 
+  def functionParameters: Parser[List[Variable]] =
+    (LPAR() ~> repsep(identifier, COMMA()) <~ RPAR()) ^^ {
+      list: List[IDENTIFIER] => list.map(i => Variable(i.value))
+    }
+
   def functionCall: Parser[FunctionCall] = positioned {
-    identifier ~ functionParameters ^^ {
+    identifier ~ functionCallParameters ^^ {
       case IDENTIFIER(name) ~ params => FunctionCall(name, params)
     }
   }
 
-  def functionParameters: Parser[List[AST]] = {
-    (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ { list: List[AST] => list }
-  }
+  def functionCallParameters: Parser[List[AST]] =
+    (LPAR() ~> repsep(expression, COMMA()) <~ RPAR()) ^^ {
+      list: List[AST] => list
+    }
 
   def block: Parser[Block] = positioned {
-    LBRC() ~> expr.* <~ RBRC() ^^ { exprs: List[AST] => Block(exprs) }
+    LBRC() ~> expression.* <~ RBRC() ^^ { exprs: List[AST] => Block(exprs) }
   }
 
   def stringNode: Parser[StringNode] = positioned {
