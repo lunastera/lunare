@@ -27,15 +27,15 @@ object Parser extends Parsers {
     }
   }
 
-  def program: Parser[List[AST]] = positioned {
-    rep1(statement)
+  def program: Parser[List[AST]] = {
+    statement.+
   }
 
   def statement: Parser[AST] = positioned {
-    phrase(functionDeclaration)
+    functionDeclaration
   }
 
-  def expression: Parser[AST] = positioned {
+  def expr: Parser[AST] = positioned {
     functionCall | stringNode | intNode
   }
 
@@ -57,12 +57,12 @@ object Parser extends Parsers {
   }
 
   def functionCallParameters: Parser[List[AST]] =
-    (LPAR() ~> repsep(expression, COMMA()) <~ RPAR()) ^^ {
+    (LPAR() ~> repsep(expr, COMMA()) <~ RPAR()) ^^ {
       list: List[AST] => list
     }
 
   def block: Parser[Block] = positioned {
-    LBRC() ~> expression.* <~ RBRC() ^^ { exprs: List[AST] => Block(exprs) }
+    LBRC() ~> expr.* <~ RBRC() ^^ { exprs: List[AST] => Block(exprs) }
   }
 
   def stringNode: Parser[StringNode] = positioned {
