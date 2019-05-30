@@ -19,7 +19,8 @@ object Lexer extends RegexParsers {
 
   def tokens: Parser[List[Token]] = {
     phrase(rep1(stringLiteral | intLiteral
-        | lpar | rpar | lbrc | rbrc
+        | lpar  | rpar  | lbrc  | rbrc
+        | plus  | minus | times | div
         | comma | func
         | identifier)
     )
@@ -42,6 +43,11 @@ object Lexer extends RegexParsers {
   def lt: Parser[LT] = token("<", LT())
   def gt: Parser[GT] = token(">", GT())
 
+  def plus: Parser[PLUS] = token("+", PLUS())
+  def minus: Parser[MINUS] = token("-", MINUS())
+  def times: Parser[TIMES] = token("*", TIMES())
+  def div: Parser[DIV] = token("/", DIV())
+
   def comma: Parser[COMMA] = token(",", COMMA())
 
   def func: Parser[DEF] = token("def", DEF())
@@ -51,7 +57,10 @@ object Lexer extends RegexParsers {
   }
 
   def intLiteral: Parser[INT_LITERAL] = positioned {
-    "\\d+".r ^^ { value => INT_LITERAL(value.toInt) }
+    minus.? ~ "\\d+".r ^^ {
+      case None ~ value => INT_LITERAL(value.toInt)
+      case _    ~ value => INT_LITERAL(-1 * value.toInt)
+    }
   }
 
   def identifier: Parser[IDENTIFIER] = positioned {

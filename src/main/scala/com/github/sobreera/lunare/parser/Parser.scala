@@ -9,6 +9,10 @@ import scala.util.parsing.input.{NoPosition, Position, Reader}
 
 object Parser extends Parsers {
   override type Elem = Token
+  private val operator: Map[Token, AST.Operator] = Map(
+    TIMES() -> Times(),
+    DIV()   -> Div()
+  )
 
   class TokenReader(tokens: Seq[Token]) extends Reader[Token] {
     override def first: Token = tokens.head
@@ -54,6 +58,14 @@ object Parser extends Parsers {
     identifier ~ functionCallParameters ^^ {
       case IDENTIFIER(name) ~ params => FunctionCall(name, params)
     }
+  }
+
+  def multiplicationOrExpr: Parser[AST] = positioned {
+    val ope: Parser[Token] = TIMES() | DIV()
+    chainl1(intNode, ope ^^ {
+      case op => (l: AST, r: AST) => BinaryOperation(operator(op), l, r)
+//      case DIV() => (l: AST, r: AST) => BinaryOperation(Div())
+    })
   }
 
   def functionCallParameters: Parser[List[AST]] =
